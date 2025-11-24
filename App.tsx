@@ -4,8 +4,10 @@
 */
 
 import React, { useState } from 'react';
+import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
 import { SvgPreview } from './components/SvgPreview';
+import { IconLibrary } from './components/IconLibrary';
 import { generateSvgFromPrompt } from './services/geminiService';
 import { GeneratedSvg, GenerationStatus, ApiError } from './types';
 import { AlertCircle } from 'lucide-react';
@@ -13,6 +15,11 @@ import { AlertCircle } from 'lucide-react';
 const App: React.FC = () => {
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
   
+  // Input State (Lifted from InputSection)
+  const [prompt, setPrompt] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState('Flat');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   // History State Management
   const [history, setHistory] = useState<GeneratedSvg[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
@@ -21,19 +28,19 @@ const App: React.FC = () => {
   // Derived state for the currently visible SVG
   const currentSvg = currentIndex >= 0 ? history[currentIndex] : null;
 
-  const handleGenerate = async (prompt: string, style: string, image?: string) => {
+  const handleGenerate = async (genPrompt: string, genStyle: string, genImage?: string) => {
     setStatus(GenerationStatus.LOADING);
     setError(null);
     // Note: We do not clear currentSvg here so the previous result remains visible during generation.
 
     try {
-      const svgContent = await generateSvgFromPrompt(prompt, style, image);
+      const svgContent = await generateSvgFromPrompt(genPrompt, genStyle, genImage);
       
       const newSvg: GeneratedSvg = {
         id: crypto.randomUUID(),
         content: svgContent,
         // Append style to prompt for history/display clarity and better filenames
-        prompt: `${prompt || 'Image Reference'} (${style})`,
+        prompt: `${genPrompt || 'Image Reference'} (${genStyle})`,
         timestamp: Date.now()
       };
       
@@ -67,10 +74,27 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSelectLibraryIcon = (newPrompt: string, newStyle: string) => {
+    setPrompt(newPrompt);
+    setSelectedStyle(newStyle);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-indigo-500/30 pt-8">      
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-indigo-500/30">
+      <Header />
+      
       <main className="pb-20">
-        <InputSection onGenerate={handleGenerate} status={status} />
+        <InputSection 
+          prompt={prompt}
+          setPrompt={setPrompt}
+          selectedStyle={selectedStyle}
+          setSelectedStyle={setSelectedStyle}
+          selectedImage={selectedImage}
+          setSelectedImage={setSelectedImage}
+          onGenerate={handleGenerate} 
+          status={status} 
+        />
         
         {status === GenerationStatus.ERROR && error && (
           <div className="max-w-2xl mx-auto mt-8 px-4">
@@ -107,6 +131,8 @@ const App: React.FC = () => {
              <p className="text-zinc-600 text-sm">Generated icons will appear here</p>
           </div>
         )}
+
+        <IconLibrary onSelect={handleSelectLibraryIcon} />
       </main>
     </div>
   );

@@ -42,6 +42,9 @@ export const generateSvgFromPrompt = async (prompt: string, style: string, image
       - If "Flat", use a modern palette with flat colors and no gradients/shadows unless specified.
       - If "Duotone", use two distinct opacity levels or complementary colors.
       - If "Pixel", use a blocky, grid-aligned aesthetic.
+      - If "Geometric", use fundamental geometric shapes (circles, squares, triangles) with mathematical precision.
+      - If "Abstract", focus on form, balance, and composition rather than literal representation.
+      - If "Hand-drawn", use organic, slightly uneven lines to simulate a sketched or doodle aesthetic.
       
       Return ONLY the SVG string.
     `;

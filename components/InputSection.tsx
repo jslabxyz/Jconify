@@ -3,11 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState, useCallback, useRef } from 'react';
-import { Send, Loader2, Sparkles, Palette, ImagePlus, X } from 'lucide-react';
+import React, { useCallback, useRef, useState } from 'react';
+import { Send, Loader2, Palette, ImagePlus, X, Crop } from 'lucide-react';
 import { GenerationStatus } from '../types';
+import { ImageEditor } from './ImageEditor';
 
 interface InputSectionProps {
+  prompt: string;
+  setPrompt: (value: string) => void;
+  selectedStyle: string;
+  setSelectedStyle: (value: string) => void;
+  selectedImage: string | null;
+  setSelectedImage: (value: string | null) => void;
   onGenerate: (prompt: string, style: string, image?: string) => void;
   status: GenerationStatus;
 }
@@ -20,27 +27,39 @@ const ICON_STYLES = [
   { id: 'Gradient', label: 'Gradient' },
   { id: 'Pixel', label: 'Pixel' },
   { id: 'Sticker', label: 'Sticker' },
+  { id: 'Geometric', label: 'Geometric' },
+  { id: 'Abstract', label: 'Abstract' },
+  { id: 'Hand-drawn', label: 'Hand-drawn' },
 ];
 
-export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, status }) => {
-  const [input, setInput] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState('Flat');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+export const InputSection: React.FC<InputSectionProps> = ({ 
+  prompt, 
+  setPrompt, 
+  selectedStyle, 
+  setSelectedStyle, 
+  selectedImage, 
+  setSelectedImage,
+  onGenerate, 
+  status 
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempImage, setTempImage] = useState<string | null>(null);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    if ((input.trim() || selectedImage) && status !== GenerationStatus.LOADING) {
-      onGenerate(input.trim(), selectedStyle, selectedImage || undefined);
+    if ((prompt.trim() || selectedImage) && status !== GenerationStatus.LOADING) {
+      onGenerate(prompt.trim(), selectedStyle, selectedImage || undefined);
     }
-  }, [input, selectedStyle, selectedImage, status, onGenerate]);
+  }, [prompt, selectedStyle, selectedImage, status, onGenerate]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
+        setTempImage(reader.result as string);
+        setIsEditing(true);
       };
       reader.readAsDataURL(file);
     }
@@ -53,10 +72,40 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, status }
     }
   };
 
+  const handleEditClick = () => {
+    if (selectedImage) {
+        setTempImage(selectedImage);
+        setIsEditing(true);
+    }
+  };
+
+  const handleEditorSave = (croppedData: string) => {
+    setSelectedImage(croppedData);
+    setIsEditing(false);
+    setTempImage(null);
+  };
+
+  const handleEditorCancel = () => {
+    setIsEditing(false);
+    setTempImage(null);
+    // Reset file input if we canceled a new upload (and didn't have an old image)
+    if (!selectedImage && fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
   const isLoading = status === GenerationStatus.LOADING;
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-12 px-4">
+      {isEditing && tempImage && (
+        <ImageEditor 
+          imageSrc={tempImage} 
+          onSave={handleEditorSave} 
+          onCancel={handleEditorCancel} 
+        />
+      )}
+
       <div className="text-center mb-8">
         <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400 mb-3">
           Design Custom Icons
@@ -72,18 +121,30 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, status }
         <div className="relative bg-zinc-900 rounded-xl border border-white/10 shadow-2xl overflow-hidden p-2">
           {selectedImage && (
             <div className="px-4 pt-3 pb-1 flex items-start gap-3 border-b border-white/5 mb-1">
-              <div className="relative group/img">
+              <div className="relative group/img flex-shrink-0">
                 <img 
                   src={selectedImage} 
                   alt="Reference" 
-                  className="w-16 h-16 object-cover rounded-lg border border-white/10" 
+                  className="w-16 h-16 object-cover rounded-lg border border-white/10 bg-zinc-950" 
                 />
+                
+                {/* Remove Button */}
                 <button
                   type="button"
                   onClick={handleRemoveImage}
-                  className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-400 hover:text-red-400 border border-white/10 rounded-full p-0.5 shadow-lg transition-colors"
+                  className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-400 hover:text-red-400 border border-white/10 rounded-full p-0.5 shadow-lg transition-colors z-10"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
+                </button>
+
+                 {/* Edit/Crop Button */}
+                 <button
+                  type="button"
+                  onClick={handleEditClick}
+                  className="absolute -bottom-2 -right-2 bg-blue-600 text-white hover:bg-blue-500 border border-white/10 rounded-full p-1 shadow-lg transition-colors z-10"
+                  title="Edit Image"
+                >
+                  <Crop className="w-3 h-3" />
                 </button>
               </div>
               <div className="text-xs text-zinc-500 mt-1">
@@ -116,8 +177,8 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, status }
 
             <input
               type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
               placeholder={selectedImage ? "Add instructions (optional)..." : "e.g. Minimalist home, settings gear..."}
               className="flex-1 bg-transparent border-none outline-none text-white placeholder-zinc-500 px-2 py-3 text-lg"
               disabled={isLoading}
@@ -125,10 +186,10 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, status }
             
             <button
               type="submit"
-              disabled={(!input.trim() && !selectedImage) || isLoading}
+              disabled={(!prompt.trim() && !selectedImage) || isLoading}
               className={`
                 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ml-2
-                ${(!input.trim() && !selectedImage) || isLoading 
+                ${(!prompt.trim() && !selectedImage) || isLoading 
                   ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
                   : 'bg-white text-zinc-950 hover:bg-zinc-200 active:scale-95 shadow-lg shadow-white/10'}
               `}
@@ -190,7 +251,7 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, status }
           ].map((suggestion) => (
             <button
               key={suggestion}
-              onClick={() => setInput(suggestion)}
+              onClick={() => setPrompt(suggestion)}
               className="px-3 py-1.5 text-xs font-medium text-zinc-500 bg-zinc-900/30 border border-white/5 rounded-full hover:bg-zinc-800 hover:text-white hover:border-white/20 transition-all"
               disabled={isLoading}
             >

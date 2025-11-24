@@ -157,30 +157,47 @@ export const SvgPreview: React.FC<SvgPreviewProps> = ({ data, onUndo, onRedo, ca
             
             <span className="text-xs text-zinc-600 font-medium uppercase tracking-wider hidden sm:block mr-1">Export:</span>
             
-            <button
-              onClick={() => handleExport('svg')}
-              disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-800 border border-white/5 rounded-lg hover:bg-zinc-700 hover:text-white transition-colors"
-            >
-              <FileType className="w-3.5 h-3.5" />
-              SVG
-            </button>
-            <button
-              onClick={() => handleExport('png')}
-              disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-800 border border-white/5 rounded-lg hover:bg-zinc-700 hover:text-white transition-colors"
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              PNG
-            </button>
-            <button
-              onClick={() => handleExport('jpeg')}
-              disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-800 border border-white/5 rounded-lg hover:bg-zinc-700 hover:text-white transition-colors"
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              JPG
-            </button>
+            <div className="relative group">
+              <button
+                onClick={() => handleExport('svg')}
+                disabled={isExporting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-800 border border-white/5 rounded-lg hover:bg-zinc-700 hover:text-white transition-colors"
+              >
+                <FileType className="w-3.5 h-3.5" />
+                SVG
+              </button>
+              <div className="absolute top-full right-0 mt-2 px-3 py-1.5 text-[10px] text-zinc-200 bg-zinc-900 border border-white/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl z-50">
+                Vector format • Infinite scaling
+              </div>
+            </div>
+
+            <div className="relative group">
+              <button
+                onClick={() => handleExport('png')}
+                disabled={isExporting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-800 border border-white/5 rounded-lg hover:bg-zinc-700 hover:text-white transition-colors"
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                PNG
+              </button>
+              <div className="absolute top-full right-0 mt-2 px-3 py-1.5 text-[10px] text-zinc-200 bg-zinc-900 border border-white/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl z-50">
+                High quality • Transparent background
+              </div>
+            </div>
+
+            <div className="relative group">
+              <button
+                onClick={() => handleExport('jpeg')}
+                disabled={isExporting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-800 border border-white/5 rounded-lg hover:bg-zinc-700 hover:text-white transition-colors"
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                JPG
+              </button>
+              <div className="absolute top-full right-0 mt-2 px-3 py-1.5 text-[10px] text-zinc-200 bg-zinc-900 border border-white/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl z-50">
+                Small file size • White background
+              </div>
+            </div>
           </div>
         </div>
 
