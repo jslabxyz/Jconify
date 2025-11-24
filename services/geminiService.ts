@@ -10,10 +10,10 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Generates an SVG string based on the user's prompt.
+ * Generates an SVG string based on the user's prompt and optional image.
  * Uses 'gemini-3-pro' as requested for generation.
  */
-export const generateSvgFromPrompt = async (prompt: string, style: string): Promise<string> => {
+export const generateSvgFromPrompt = async (prompt: string, style: string, imageBase64?: string): Promise<string> => {
   try {
     const systemPrompt = `
       You are an expert UI/UX Icon Designer. Your task is to generate high-quality, professional SVG icons.
@@ -31,10 +31,8 @@ export const generateSvgFromPrompt = async (prompt: string, style: string): Prom
           - Ensure the content is centered within the viewBox with appropriate padding.
     `;
 
-    const fullPrompt = `
+    let userInstruction = `
       Task: Create a professional SVG icon.
-      Subject: "${prompt}"
-      
       Visual Style: "${style}"
       
       Style Instructions:
@@ -48,9 +46,38 @@ export const generateSvgFromPrompt = async (prompt: string, style: string): Prom
       Return ONLY the SVG string.
     `;
 
+    if (prompt) {
+      userInstruction += `\nSubject/Description: "${prompt}"`;
+    }
+
+    if (imageBase64) {
+      userInstruction += `\nReference Image Provided: Use the attached image as a strong visual reference for the icon's shape and composition, but simplify it to match the requested "${style}" icon style.`;
+    }
+
+    const contents = [];
+    
+    // Construct the parts array
+    const parts: any[] = [{ text: userInstruction }];
+
+    if (imageBase64) {
+      // Extract data and mimeType from data URL
+      // Format: data:image/png;base64,.....
+      const matches = imageBase64.match(/^data:(.+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        parts.push({
+          inlineData: {
+            mimeType: matches[1],
+            data: matches[2]
+          }
+        });
+      }
+    }
+
+    contents.push({ parts });
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
-      contents: fullPrompt,
+      contents: contents,
       config: {
         systemInstruction: systemPrompt,
         temperature: 0.4, 

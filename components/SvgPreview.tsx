@@ -4,14 +4,18 @@
 */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Download, CheckCircle2, Code, Image as ImageIcon, FileType } from 'lucide-react';
+import { Download, CheckCircle2, Code, Image as ImageIcon, FileType, Undo2, Redo2 } from 'lucide-react';
 import { GeneratedSvg } from '../types';
 
 interface SvgPreviewProps {
   data: GeneratedSvg | null;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export const SvgPreview: React.FC<SvgPreviewProps> = ({ data }) => {
+export const SvgPreview: React.FC<SvgPreviewProps> = ({ data, onUndo, onRedo, canUndo, canRedo }) => {
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,9 +119,33 @@ export const SvgPreview: React.FC<SvgPreviewProps> = ({ data }) => {
       <div className="bg-zinc-900/80 backdrop-blur border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-white/10 bg-zinc-900/50 gap-4 sm:gap-0">
-          <h3 className="text-sm font-medium text-zinc-300 truncate max-w-[200px]">
-            Result: <span className="text-zinc-500">"{data.prompt}"</span>
-          </h3>
+          
+          <div className="flex items-center gap-3 overflow-hidden">
+            {/* History Controls */}
+            <div className="flex items-center gap-1 border-r border-white/10 pr-3 mr-1">
+                <button 
+                  onClick={onUndo} 
+                  disabled={!canUndo}
+                  className={`p-1.5 rounded-lg transition-colors ${!canUndo ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}
+                  title="Undo"
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={onRedo} 
+                  disabled={!canRedo}
+                  className={`p-1.5 rounded-lg transition-colors ${!canRedo ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}
+                  title="Redo"
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+            </div>
+
+            <h3 className="text-sm font-medium text-zinc-300 truncate max-w-[200px] sm:max-w-xs">
+              Result: <span className="text-zinc-500">"{data.prompt}"</span>
+            </h3>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleCopyCode}

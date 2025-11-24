@@ -12,26 +12,36 @@ import { AlertCircle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
-  const [currentSvg, setCurrentSvg] = useState<GeneratedSvg | null>(null);
+  
+  // History State Management
+  const [history, setHistory] = useState<GeneratedSvg[]>([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const handleGenerate = async (prompt: string, style: string) => {
+  // Derived state for the currently visible SVG
+  const currentSvg = currentIndex >= 0 ? history[currentIndex] : null;
+
+  const handleGenerate = async (prompt: string, style: string, image?: string) => {
     setStatus(GenerationStatus.LOADING);
     setError(null);
-    setCurrentSvg(null);
+    // Note: We do not clear currentSvg here so the previous result remains visible during generation.
 
     try {
-      const svgContent = await generateSvgFromPrompt(prompt, style);
+      const svgContent = await generateSvgFromPrompt(prompt, style, image);
       
       const newSvg: GeneratedSvg = {
         id: crypto.randomUUID(),
         content: svgContent,
         // Append style to prompt for history/display clarity and better filenames
-        prompt: `${prompt} (${style})`,
+        prompt: `${prompt || 'Image Reference'} (${style})`,
         timestamp: Date.now()
       };
       
-      setCurrentSvg(newSvg);
+      // Update history: remove any "redo" future if we are in the middle of the stack, then add new
+      const newHistory = history.slice(0, currentIndex + 1).concat(newSvg);
+      
+      setHistory(newHistory);
+      setCurrentIndex(newHistory.length - 1);
       setStatus(GenerationStatus.SUCCESS);
     } catch (err: any) {
       setStatus(GenerationStatus.ERROR);
@@ -39,6 +49,21 @@ const App: React.FC = () => {
         message: "Generation Failed",
         details: err.message || "An unexpected error occurred while contacting Gemini."
       });
+    }
+  };
+
+  const handleUndo = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+      // Clear error state when navigating history
+      if (status === GenerationStatus.ERROR) setStatus(GenerationStatus.SUCCESS);
+    }
+  };
+
+  const handleRedo = () => {
+    if (currentIndex < history.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      if (status === GenerationStatus.ERROR) setStatus(GenerationStatus.SUCCESS);
     }
   };
 
@@ -59,14 +84,18 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {status === GenerationStatus.SUCCESS && currentSvg && (
+        {currentSvg && (
           <SvgPreview 
             data={currentSvg} 
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={currentIndex > 0}
+            canRedo={currentIndex < history.length - 1}
           />
         )}
         
-        {/* Empty State / Placeholder */}
-        {status === GenerationStatus.IDLE && (
+        {/* Empty State / Placeholder - Show only if no content is available */}
+        {!currentSvg && (
           <div className="max-w-2xl mx-auto mt-16 text-center px-4 opacity-50 pointer-events-none select-none">
              <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-zinc-900/50 border border-white/5 mb-4">
                 <svg className="w-12 h-12 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
