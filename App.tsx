@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('Flat');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState('#3b82f6'); // Default blue
 
   // History State Management
   const [history, setHistory] = useState<GeneratedSvg[]>([]);
@@ -28,13 +29,13 @@ const App: React.FC = () => {
   // Derived state for the currently visible SVG
   const currentSvg = currentIndex >= 0 ? history[currentIndex] : null;
 
-  const handleGenerate = async (genPrompt: string, genStyle: string, genImage?: string) => {
+  const handleGenerate = async (genPrompt: string, genStyle: string, genImage?: string, genColor?: string) => {
     setStatus(GenerationStatus.LOADING);
     setError(null);
     // Note: We do not clear currentSvg here so the previous result remains visible during generation.
 
     try {
-      const svgContent = await generateSvgFromPrompt(genPrompt, genStyle, genImage);
+      const svgContent = await generateSvgFromPrompt(genPrompt, genStyle, genImage, genColor);
       
       const newSvg: GeneratedSvg = {
         id: crypto.randomUUID(),
@@ -92,6 +93,8 @@ const App: React.FC = () => {
           setSelectedStyle={setSelectedStyle}
           selectedImage={selectedImage}
           setSelectedImage={setSelectedImage}
+          selectedColor={selectedColor}
+          setSelectedColor={setSelectedColor}
           onGenerate={handleGenerate} 
           status={status} 
         />

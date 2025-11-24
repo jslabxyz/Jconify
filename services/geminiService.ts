@@ -13,7 +13,12 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
  * Generates an SVG string based on the user's prompt and optional image.
  * Uses 'gemini-3-pro' as requested for generation.
  */
-export const generateSvgFromPrompt = async (prompt: string, style: string, imageBase64?: string): Promise<string> => {
+export const generateSvgFromPrompt = async (
+  prompt: string, 
+  style: string, 
+  imageBase64?: string, 
+  color?: string
+): Promise<string> => {
   try {
     const systemPrompt = `
       You are an expert UI/UX Icon Designer. Your task is to generate high-quality, professional SVG icons.
@@ -34,6 +39,7 @@ export const generateSvgFromPrompt = async (prompt: string, style: string, image
     let userInstruction = `
       Task: Create a professional SVG icon.
       Visual Style: "${style}"
+      ${color ? `Primary Color: "${color}" (Use this hex code as the main color for fills or strokes).` : ''}
       
       Style Instructions:
       - Strictly adhere to the "${style}" style.
