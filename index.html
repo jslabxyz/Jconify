@@ -9,12 +9,26 @@
       tailwind.config = {
         theme: {
           extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            backgroundImage: {
+              'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+              'hero-glow': 'conic-gradient(from 180deg at 50% 50%, #2a8af6 0deg, #a853ba 180deg, #e92a67 360deg)',
+            },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
+              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },
             keyframes: {
               fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
               }
             }
@@ -22,20 +36,31 @@
         }
       }
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
       /* Custom scrollbar for a cleaner look */
       ::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #09090b;
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #27272a;
-        border-radius: 4px;
+        background: #334155;
+        border-radius: 99px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #3f3f46;
+        background: #475569;
+      }
+      
+      .bg-grid-pattern {
+        background-size: 40px 40px;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
       }
     </style>
   <script type="importmap">
@@ -50,7 +75,20 @@
 }
 </script>
 </head>
-  <body class="bg-zinc-950 antialiased">
-    <div id="root"></div>
+  <body class="bg-[#05050A] text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-100">
+    <!-- Ambient Background Effects -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      <!-- Deep Void Gradient -->
+      <div class="absolute inset-0 bg-gradient-to-b from-[#0a0a12] via-[#05050A] to-black"></div>
+      
+      <!-- Colored Aurora Spots -->
+      <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+      <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/10 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+      
+      <!-- Grid Overlay -->
+      <div class="absolute inset-0 bg-grid-pattern [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)]"></div>
+    </div>
+    
+    <div id="root" class="relative z-10"></div>
   </body>
 </html>

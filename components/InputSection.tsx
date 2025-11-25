@@ -1,10 +1,11 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
 
 import React, { useCallback, useRef, useState } from 'react';
-import { Send, Loader2, Palette, ImagePlus, X, Crop, PaintBucket } from 'lucide-react';
+import { Send, Loader2, Palette, ImagePlus, X, Crop, PaintBucket, Wand2 } from 'lucide-react';
 import { GenerationStatus } from '../types';
 import { ImageEditor } from './ImageEditor';
 
@@ -23,7 +24,7 @@ interface InputSectionProps {
 
 const ICON_STYLES = [
   { id: 'Flat', label: 'Flat' },
-  { id: 'Line Art', label: 'Line Art' },
+  { id: 'Line Art', label: 'Line' },
   { id: 'Solid', label: 'Solid' },
   { id: 'Duotone', label: 'Duotone' },
   { id: 'Gradient', label: 'Gradient' },
@@ -31,11 +32,11 @@ const ICON_STYLES = [
   { id: 'Sticker', label: 'Sticker' },
   { id: 'Geometric', label: 'Geometric' },
   { id: 'Abstract', label: 'Abstract' },
-  { id: 'Hand-drawn', label: 'Hand-drawn' },
+  { id: 'Hand-drawn', label: 'Sketch' },
 ];
 
 const COLOR_PRESETS = [
-  '#000000', '#FFFFFF', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6', '#ec4899', '#f97316'
+  '#000000', '#FFFFFF', '#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#6366f1'
 ];
 
 export const InputSection: React.FC<InputSectionProps> = ({ 
@@ -53,6 +54,7 @@ export const InputSection: React.FC<InputSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [tempImage, setTempImage] = useState<string | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -101,10 +103,21 @@ export const InputSection: React.FC<InputSectionProps> = ({
     }
   };
 
+  const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (!val.startsWith('#')) {
+        val = '#' + val;
+    }
+    // Limit to 7 chars (#RRGGBB)
+    if (val.length <= 7) {
+        setSelectedColor(val);
+    }
+  };
+
   const isLoading = status === GenerationStatus.LOADING;
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-6 sm:mt-12 px-4">
+    <div className="w-full max-w-4xl mx-auto mt-8 sm:mt-12 px-4">
       {isEditing && tempImage && (
         <ImageEditor 
           imageSrc={tempImage} 
@@ -113,197 +126,201 @@ export const InputSection: React.FC<InputSectionProps> = ({
         />
       )}
 
-      <div className="text-center mb-6 sm:mb-8 px-2">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400 mb-2 sm:mb-3">
-          Design Custom Icons
+      <div className="text-center mb-12 space-y-2">
+        <h2 className="text-4xl sm:text-6xl font-bold text-white tracking-tighter">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-white">
+            Generate Assets
+          </span>
         </h2>
-        <p className="text-zinc-400 text-sm sm:text-lg">
-          Describe the icon you need or upload an image as reference.
+        <p className="text-slate-400 font-mono text-xs sm:text-sm uppercase tracking-widest opacity-80">
+          AI-Powered Vector Synthesis Engine
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="relative group z-10">
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur-lg"></div>
-        
-        <div className="relative bg-zinc-900 rounded-xl border border-white/10 shadow-2xl overflow-hidden p-1 sm:p-2">
-          {selectedImage && (
-            <div className="px-3 sm:px-4 pt-3 pb-1 flex items-start gap-3 border-b border-white/5 mb-1">
-              <div className="relative group/img flex-shrink-0">
-                <img 
-                  src={selectedImage} 
-                  alt="Reference" 
-                  className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg border border-white/10 bg-zinc-950" 
-                />
-                
-                <button
+      <form onSubmit={handleSubmit} className="relative z-20 mb-8">
+        {/* Main Input HUD */}
+        <div className={`
+          relative group transition-all duration-300 rounded-2xl p-1
+          ${isFocused ? 'bg-gradient-to-r from-blue-500 via-cyan-500 to-violet-500' : 'bg-white/10'}
+        `}>
+          <div className="bg-[#0b0c15] rounded-xl overflow-hidden relative">
+            
+            {/* Active Image Badge */}
+            {selectedImage && (
+              <div className="absolute top-0 left-0 right-0 z-10 px-4 py-2 bg-blue-500/10 border-b border-blue-500/20 backdrop-blur-md flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative group/img cursor-pointer" onClick={handleEditClick}>
+                    <img 
+                      src={selectedImage} 
+                      alt="Ref" 
+                      className="w-8 h-8 rounded border border-blue-500/30 object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity rounded">
+                      <Crop className="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-blue-300 uppercase tracking-wider">
+                    Ref_Img_Loaded.png
+                  </span>
+                </div>
+                <button 
                   type="button"
                   onClick={handleRemoveImage}
-                  className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-400 hover:text-red-400 border border-white/10 rounded-full p-0.5 shadow-lg transition-colors z-10"
+                  className="p-1 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
+              </div>
+            )}
 
+            <div className={`flex items-center p-2 sm:p-4 gap-3 ${selectedImage ? 'pt-14' : ''}`}>
+              {/* Upload Button */}
+              <div className="flex-shrink-0">
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   className="hidden" 
+                   ref={fileInputRef}
+                   onChange={handleFileChange}
+                   disabled={isLoading}
+                 />
                  <button
-                  type="button"
-                  onClick={handleEditClick}
-                  className="absolute -bottom-2 -right-2 bg-blue-600 text-white hover:bg-blue-500 border border-white/10 rounded-full p-1 shadow-lg transition-colors z-10"
-                  title="Edit Image"
-                >
-                  <Crop className="w-3 h-3" />
-                </button>
+                   type="button"
+                   onClick={() => fileInputRef.current?.click()}
+                   className={`
+                     p-3 sm:p-4 rounded-xl transition-all duration-200 border border-dashed
+                     ${selectedImage 
+                       ? 'border-blue-500/50 bg-blue-500/5 text-blue-400' 
+                       : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:text-white hover:bg-slate-800/80 hover:border-slate-500'}
+                   `}
+                   title="Upload Reference"
+                   disabled={isLoading}
+                 >
+                   <ImagePlus className="w-5 h-5" />
+                 </button>
               </div>
-              <div className="text-xs text-zinc-500 mt-1">
-                <span className="font-medium text-zinc-300">Image Reference Attached</span>
-                <p className="line-clamp-2 sm:line-clamp-none">The AI will use this image as a visual guide.</p>
-              </div>
-            </div>
-          )}
 
-          <div className="flex items-center gap-1 sm:gap-2">
-            <div className="pl-1 sm:pl-3 pr-1 sm:pr-2 border-r border-white/5 flex-shrink-0">
-               <input 
-                 type="file" 
-                 accept="image/*" 
-                 className="hidden" 
-                 ref={fileInputRef}
-                 onChange={handleFileChange}
-                 disabled={isLoading}
-               />
-               <button
-                 type="button"
-                 onClick={() => fileInputRef.current?.click()}
-                 className={`p-3 sm:p-2 rounded-lg transition-colors ${selectedImage ? 'text-blue-400 bg-blue-400/10' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
-                 title="Upload Reference Image"
-                 disabled={isLoading}
-               >
-                 <ImagePlus className="w-5 h-5 sm:w-5 sm:h-5" />
-               </button>
+              {/* Text Input */}
+              <input
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Initialize generation sequence..."
+                className="flex-1 bg-transparent border-none outline-none text-white placeholder-slate-600 py-3 text-base sm:text-lg font-medium min-w-0"
+                disabled={isLoading}
+              />
+              
+              {/* Generate Button */}
+              <button
+                type="submit"
+                disabled={(!prompt.trim() && !selectedImage) || isLoading}
+                className={`
+                  flex-shrink-0 relative group/btn overflow-hidden flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold tracking-wide transition-all duration-300
+                  ${(!prompt.trim() && !selectedImage) || isLoading 
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+                    : 'bg-white text-black hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.3)]'}
+                `}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-black" />
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">RUN</span>
+                    <Send className="w-4 h-4" />
+                  </>
+                )}
+                {/* Button Glint */}
+                <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-40 group-hover/btn:animate-shine" />
+              </button>
             </div>
-
-            <input
-              type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={selectedImage ? "Instructions (opt)..." : "e.g. Minimalist home..."}
-              className="flex-1 bg-transparent border-none outline-none text-white placeholder-zinc-500 px-2 py-3 text-base sm:text-lg w-full min-w-0"
-              disabled={isLoading}
-            />
-            
-            <button
-              type="submit"
-              disabled={(!prompt.trim() && !selectedImage) || isLoading}
-              className={`
-                flex-shrink-0 flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 mr-1 sm:mr-2
-                ${(!prompt.trim() && !selectedImage) || isLoading 
-                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
-                  : 'bg-white text-zinc-950 hover:bg-zinc-200 active:scale-95 shadow-lg shadow-white/10'}
-              `}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="hidden sm:inline">Creating...</span>
-                </>
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Generate</span>
-                  <Send className="w-5 h-5" />
-                </>
-              )}
-            </button>
           </div>
         </div>
       </form>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-        {/* Style Selector */}
-        <div className="flex flex-col items-center md:items-start">
-          <div className="flex items-center gap-2 mb-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider pl-1">
+      {/* Parameters Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
+        
+        {/* Style Module */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
             <Palette className="w-3 h-3" />
-            <span>Select Style</span>
+            <span>Style_Matrix</span>
           </div>
-          <div className="flex flex-wrap justify-center md:justify-start gap-2.5">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {ICON_STYLES.map((style) => (
               <button
                 key={style.id}
                 onClick={() => setSelectedStyle(style.id)}
                 disabled={isLoading}
                 className={`
-                  px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border
+                  relative px-2 py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all duration-200 border
                   ${selectedStyle === style.id 
-                    ? 'bg-blue-500/10 border-blue-500/50 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
-                    : 'bg-zinc-900/50 border-white/5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 hover:border-white/10'}
+                    ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.15)]' 
+                    : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:bg-slate-800 hover:border-slate-600 hover:text-white'}
                 `}
               >
                 {style.label}
+                {selectedStyle === style.id && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_5px_rgba(34,211,238,1)]"></span>
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Color Selector */}
-        <div className="flex flex-col items-center md:items-start">
-           <div className="flex items-center gap-2 mb-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider pl-1">
+        {/* Color Module */}
+        <div className="space-y-3">
+           <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
             <PaintBucket className="w-3 h-3" />
-            <span>Primary Color</span>
+            <span>Chroma_Config</span>
           </div>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-             <div className="relative group/picker">
+          <div className="flex items-center gap-2 p-3 bg-[#0b0c15] border border-white/5 rounded-xl">
+             <div className="relative w-8 h-8 flex-shrink-0 group">
                 <input
                   type="color"
-                  value={selectedColor}
+                  value={selectedColor.length === 7 ? selectedColor : '#000000'}
                   onChange={(e) => setSelectedColor(e.target.value)}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  title="Custom Color"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                   disabled={isLoading}
                 />
-                <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden flex items-center justify-center bg-zinc-800 group-hover/picker:border-white/30 transition-colors">
-                  <div className="w-6 h-6 rounded-full" style={{ backgroundColor: selectedColor }}></div>
+                <div 
+                  className="w-full h-full rounded-full border border-white/20 shadow-[0_0_10px_inset_rgba(0,0,0,0.5)] flex items-center justify-center transition-transform group-hover:scale-105"
+                  style={{ backgroundColor: selectedColor }}
+                >
+                  <Wand2 className="w-3 h-3 text-white mix-blend-difference opacity-50" />
                 </div>
              </div>
              
-             <div className="w-px h-6 bg-white/10"></div>
+             {/* Hex Input Display */}
+             <input 
+               type="text" 
+               value={selectedColor}
+               onChange={handleHexChange}
+               className="w-16 bg-transparent text-[10px] font-mono text-slate-400 focus:text-cyan-400 outline-none uppercase border-b border-transparent focus:border-cyan-500/50 transition-colors pb-0.5"
+               maxLength={7}
+               placeholder="#HEX"
+             />
 
-             {COLOR_PRESETS.map((color) => (
-               <button
-                 key={color}
-                 onClick={() => setSelectedColor(color)}
-                 disabled={isLoading}
-                 className={`
-                   w-6 h-6 rounded-full border transition-all duration-200 hover:scale-110
-                   ${selectedColor === color ? 'border-white ring-2 ring-blue-500/50 scale-110' : 'border-white/10 hover:border-white/30'}
-                 `}
-                 style={{ backgroundColor: color }}
-                 title={color}
-               />
-             ))}
+             <div className="h-6 w-px bg-white/10 mx-2"></div>
+
+             <div className="flex flex-1 justify-between">
+               {COLOR_PRESETS.map((color) => (
+                 <button
+                   key={color}
+                   onClick={() => setSelectedColor(color)}
+                   disabled={isLoading}
+                   className={`
+                     w-5 h-5 rounded hover:scale-110 transition-all
+                     ${selectedColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0b0c15] scale-110' : 'opacity-70 hover:opacity-100'}
+                   `}
+                   style={{ backgroundColor: color }}
+                   title={color}
+                 />
+               ))}
+             </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Quick suggestions */}
-      <div className="mt-8 pt-6 border-t border-white/5 text-center md:text-left">
-        <div className="text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-3 pl-1">
-          Try Examples
-        </div>
-        <div className="flex flex-wrap justify-center md:justify-start gap-2.5">
-          {[
-            'Cloud Upload', 
-            'Secure Shield', 
-            'Analytics Graph', 
-            'Mail Envelope',
-            'User Profile',
-            'Settings Gear'
-          ].map((suggestion) => (
-            <button
-              key={suggestion}
-              onClick={() => setPrompt(suggestion)}
-              className="px-4 py-2 sm:px-3 sm:py-1.5 text-xs font-medium text-zinc-500 bg-zinc-900/30 border border-white/5 rounded-full hover:bg-zinc-800 hover:text-white hover:border-white/20 transition-all"
-              disabled={isLoading}
-            >
-              {suggestion}
-            </button>
-          ))}
         </div>
       </div>
     </div>
