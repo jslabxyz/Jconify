@@ -4,7 +4,7 @@
 */
 
 import React, { useCallback, useRef, useState } from 'react';
-import { Send, Loader2, Palette, ImagePlus, X, Crop, PaintBucket, XCircle } from 'lucide-react';
+import { Send, Loader2, Palette, ImagePlus, X, Crop, PaintBucket } from 'lucide-react';
 import { GenerationStatus } from '../types';
 import { ImageEditor } from './ImageEditor';
 
@@ -180,26 +180,14 @@ export const InputSection: React.FC<InputSectionProps> = ({
                </button>
             </div>
 
-            <div className="flex-1 relative min-w-0">
-              <input
-                type="text"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder={selectedImage ? "Instructions (opt)..." : "e.g. Minimalist home..."}
-                className="w-full bg-transparent border-none outline-none text-white placeholder-zinc-500 px-2 py-3 pr-9 text-base sm:text-lg"
-                disabled={isLoading}
-              />
-              {prompt && !isLoading && (
-                <button
-                  type="button"
-                  onClick={() => setPrompt('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 rounded-full hover:bg-zinc-800 transition-colors"
-                  title="Clear text"
-                >
-                  <XCircle className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder={selectedImage ? "Instructions (opt)..." : "e.g. Minimalist home..."}
+              className="flex-1 bg-transparent border-none outline-none text-white placeholder-zinc-500 px-2 py-3 text-base sm:text-lg w-full min-w-0"
+              disabled={isLoading}
+            />
             
             <button
               type="submit"

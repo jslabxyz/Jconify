@@ -23,8 +23,8 @@ export const IconLibrary: React.FC<IconLibraryProps> = ({ onSelect }) => {
   }, [searchQuery]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto mt-16 px-4 mb-20">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4 sticky top-16 z-30 bg-zinc-950/95 backdrop-blur py-4 -mx-4 px-4 md:relative md:top-0 md:bg-transparent md:p-0 md:mx-0 border-b md:border-none border-white/5 shadow-lg md:shadow-none transition-all">
+    <div className="w-full max-w-5xl mx-auto mt-20 px-4 mb-20">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white">Icon Library</h2>
           <p className="text-zinc-400 text-sm">Browse pre-generated icons and remix them.</p>
@@ -61,7 +61,7 @@ export const IconLibrary: React.FC<IconLibraryProps> = ({ onSelect }) => {
                 
                 <button
                   onClick={() => onSelect(icon.prompt, icon.style)}
-                  className="flex items-center gap-1 text-[10px] font-medium text-blue-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:text-blue-300"
+                  className="flex items-center gap-1 text-[10px] font-medium text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-blue-300"
                 >
                   <PenLine className="w-3 h-3" />
                   Modify

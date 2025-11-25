@@ -147,10 +147,10 @@ export const SvgPreview: React.FC<SvgPreviewProps> = ({ data, onUndo, onRedo, ca
             </h3>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto mt-3 sm:mt-0">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <button
               onClick={handleCopyCode}
-              className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex justify-center items-center border border-white/5 bg-zinc-800 sm:bg-transparent sm:border-transparent"
+              className="flex-1 sm:flex-none p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex justify-center mr-1 sm:mr-2"
               title="Copy SVG Code"
             >
               {copied ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Code className="w-5 h-5" />}
@@ -158,7 +158,7 @@ export const SvgPreview: React.FC<SvgPreviewProps> = ({ data, onUndo, onRedo, ca
             
             <span className="text-xs text-zinc-600 font-medium uppercase tracking-wider hidden sm:block mr-1">Export:</span>
             
-            <div className="flex gap-2 flex-1 sm:w-auto sm:flex-none justify-end">
+            <div className="flex gap-2 w-full sm:w-auto justify-end">
                 <div className="relative group flex-1 sm:flex-none">
                 <button
                     onClick={() => handleExport('svg')}
