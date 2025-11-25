@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -42,6 +43,10 @@ const App: React.FC = () => {
         content: svgContent,
         // Append style to prompt for history/display clarity and better filenames
         prompt: `${genPrompt || 'Image Reference'} (${genStyle})`,
+        originalPrompt: genPrompt,
+        style: genStyle,
+        image: genImage,
+        color: genColor,
         timestamp: Date.now()
       };
       
@@ -58,6 +63,17 @@ const App: React.FC = () => {
         details: err.message || "An unexpected error occurred while contacting Gemini."
       });
     }
+  };
+
+  const handleRegenerate = () => {
+    if (!currentSvg) return;
+    // Use the stored parameters from the current SVG to generate a variation
+    handleGenerate(
+      currentSvg.originalPrompt,
+      currentSvg.style,
+      currentSvg.image,
+      currentSvg.color
+    );
   };
 
   const handleUndo = () => {
@@ -116,6 +132,7 @@ const App: React.FC = () => {
             data={currentSvg} 
             onUndo={handleUndo}
             onRedo={handleRedo}
+            onRegenerate={handleRegenerate}
             canUndo={currentIndex > 0}
             canRedo={currentIndex < history.length - 1}
           />

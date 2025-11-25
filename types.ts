@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -13,7 +14,11 @@ export enum GenerationStatus {
 export interface GeneratedSvg {
   id: string;
   content: string;
-  prompt: string;
+  prompt: string; // Formatted display string
+  originalPrompt: string; // Raw prompt for regeneration
+  style: string;
+  image?: string; // Optional base64 image
+  color?: string;
   timestamp: number;
 }
 

@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -11,7 +12,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Generates an SVG string based on the user's prompt and optional image.
- * Uses 'gemini-3-pro' as requested for generation.
+ * Uses 'gemini-2.5-flash' for faster generation.
  */
 export const generateSvgFromPrompt = async (
   prompt: string, 
@@ -34,6 +35,7 @@ export const generateSvgFromPrompt = async (
           - Use inline styles or attributes (fill, stroke) directly on elements.
           - Do not use external CSS or fonts.
           - Ensure the content is centered within the viewBox with appropriate padding.
+          - Start the output immediately with <svg ...
     `;
 
     let userInstruction = `
@@ -52,7 +54,7 @@ export const generateSvgFromPrompt = async (
       - If "Abstract", focus on form, balance, and composition rather than literal representation.
       - If "Hand-drawn", use organic, slightly uneven lines to simulate a sketched or doodle aesthetic.
       
-      Return ONLY the SVG string.
+      Return ONLY the SVG string. Do not wrap in markdown code blocks.
     `;
 
     if (prompt) {
@@ -85,11 +87,11 @@ export const generateSvgFromPrompt = async (
     contents.push({ parts });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-2.5-flash',
       contents: contents,
       config: {
         systemInstruction: systemPrompt,
-        temperature: 0.4, 
+        temperature: 0.6, // Slightly higher temperature for variations
         topP: 0.95,
         topK: 40,
       },
